@@ -1,6 +1,6 @@
 # Resume Submission Form with Next.js, MongoDB, Mongoose, and Cloudinary
 
-![](/public/vercel.svg)
+![](/public/kudosware-hr-app.png)
 
 This project is a web application built using **Next.js**, **MongoDB**, and **Mongoose**. It allows users to submit their name, email, phone number, and resume via a form. The resume is validated to be a PDF, uploaded to a temporary server folder, then uploaded to Cloudinary, and finally, the user's details and the Cloudinary URL are saved in a MongoDB database.
 
