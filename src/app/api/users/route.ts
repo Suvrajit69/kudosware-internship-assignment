@@ -2,8 +2,6 @@ import User from "@/models/user";
 import { connectToDB } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { uploadOnCloudinary } from "@/lib/cloudinary";
-import fs from "fs";
-import path from "path";
 
 export async function POST(req: Request) {
   try {
@@ -12,45 +10,37 @@ export async function POST(req: Request) {
     const { name, email, phone } = body;
     const file = (body.resume as Blob) || null;
 
-    let filePath;
-    if (file) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-
-      if (!fs.existsSync("public/temp")) {
-        fs.mkdirSync("public/temp", { recursive: true });
-      }
-
-      const originalFilename = (file as File).name;
-      const extension = path.extname(originalFilename);
-      const uniqueFilename = `${Date.now()}-${Math.round(
-        Math.random() * 1e9
-      )}${extension}`;
-
-      filePath = path.resolve("public/temp", uniqueFilename);
-
-      fs.writeFileSync(filePath, buffer);
-    } else {
+    if (!file) {
       return NextResponse.json({
         success: false,
+        message: "No file uploaded",
       });
     }
-    const resumeUrl = await uploadOnCloudinary(filePath);
 
-    console.log(resumeUrl);
-    
+    // Convert file to buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
 
+    const cloudinaryUrl = await uploadOnCloudinary(buffer);
+    if (!cloudinaryUrl) {
+      return NextResponse.json({
+        success: false,
+        message: "Uploading failed to cloudinary",
+      });
+    }
     await connectToDB();
+    console.log(cloudinaryUrl);
 
-    const newApplicant = new User({
+    const newApplicantion = new User({
       name,
       email,
       phone,
-      resume: resumeUrl?.secure_url,
+      resume: cloudinaryUrl,
     });
+    console.log(newApplicantion);
 
-    await newApplicant.save();
+    await newApplicantion.save();
 
-    return new NextResponse(JSON.stringify(newApplicant), { status: 201 });
+    return new NextResponse(JSON.stringify(newApplicantion), { status: 201 });
   } catch (error) {
     console.log("SUBMIT", error);
     return new NextResponse("Internal Error", { status: 500 });
