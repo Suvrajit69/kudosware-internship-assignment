@@ -17,10 +17,12 @@ const Form = () => {
     phone: "",
     resume: null,
   });
-  const router = useRouter()
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
-  
+
     if (name === "resume" && files) {
       const file = files[0];
       if (file && file.type === "application/pdf") {
@@ -30,7 +32,6 @@ const Form = () => {
         e.target.value = "";
       }
     } else if (name === "phone") {
-      
       const phoneNumber = value.replace(/\D/g, "");
       if (phoneNumber.length <= 10) {
         setFormData({ ...formData, phone: phoneNumber });
@@ -39,10 +40,10 @@ const Form = () => {
       setFormData({ ...formData, [name]: value });
     }
   };
-  
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     const data = new FormData();
     data.append("name", formData.name);
     data.append("email", formData.email);
@@ -53,11 +54,13 @@ const Form = () => {
 
     try {
       await axios.post("/api/users", data);
-      setFormData({...formData, name: "", email: "", phone: "", resume: null });
-      router.replace("/confirmation")
+      router.replace("/confirmation");
     } catch (error) {
       console.log(error);
-      alert('An error occurred while submitting the form. Please check your email and phone.');
+      alert(
+        "An error occurred while submitting the form. Please check your email and phone."
+      );
+      setLoading(false);
     }
   };
 
@@ -132,10 +135,12 @@ const Form = () => {
       </div>
       <button
         type="submit"
-        // disabled
-        className="w-full bg-blue-500 text-white p-2 rounded"
+        disabled={loading}
+        className={`w-full bg-blue-500 text-white p-2 rounded ${
+          loading ? "cursor-not-allowed" : "cursor-pointer"
+        }`}
       >
-        Submit
+        {loading ? "Submitting..." : "Submit"}
       </button>
     </form>
   );
